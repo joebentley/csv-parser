@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef char*** csv_data;
-
 typedef struct linked_list {
     void *node;
     struct linked_list *next;
@@ -51,8 +49,102 @@ void ll_destroy(linked_list_t *ll) {
     free(ll);
 }
 
+typedef struct csv_data {
+    char ***data;
+    uint32_t num_rows;
+    uint32_t num_columns;
+} csv_data_t;
+
+csv_data_t *csv_read_from_file(FILE *file) {
+    char buf[1000];
+    uint32_t num_rows = 0;
+    uint32_t num_columns = 0;
+    linked_list_t *rows = ll_new();
+    linked_list_t *begin = rows;
+
+    while (fgets(buf, sizeof buf, file) != NULL) {
+        linked_list_t *row = ll_new();
+        linked_list_t *begin_row = row;
+        char *line = malloc(sizeof(char) * strlen(buf));
+        char *token;
+        char *separator = NULL;
+
+        memcpy(line, buf, strlen(buf));
+
+        do {
+            separator = strpbrk(line, ",\n");
+            token = line;
+            
+            if (separator) {
+                line = separator + 1;
+                *separator = '\0';
+            }
+
+            ll_push(&row, token);
+            // printf("%p: %s\n", token, token);
+            if (num_rows == 0)
+                ++num_columns;
+        } while (separator);
+
+        ll_push(&rows, begin_row);
+        ++num_rows;
+    }
+
+    rows = begin;
+
+    csv_data_t *csv = malloc(sizeof(csv_data_t));
+    csv->data = malloc(sizeof(char*) * num_rows);
+    csv->num_columns = num_columns;
+    csv->num_rows = num_rows;
+
+    for (uint32_t i = 0; i < num_rows; ++i) {
+        csv->data[i] = malloc(sizeof(char*) * num_columns);
+    }
+
+    for (uint32_t i = 0; i < num_rows; ++i) {
+        linked_list_t *row = ll_get_and_next(&rows);
+        linked_list_t *begin_row = row;
+
+        for (uint32_t j = 0; j < num_columns; ++j) {
+            char *element = ll_get_and_next(&row);
+            // printf("%d %d: %p %s\n", i, j, element, element);
+            csv->data[i][j] = element;
+        }
+        ll_destroy(begin_row);
+    }
+
+    ll_destroy(begin);
+
+    return csv;
+}
+
+void csv_destroy(csv_data_t *data) {
+    for (uint32_t i = 0; i < data->num_rows; ++i) {
+        free(*data->data[i]); // Free the string
+        free(data->data[i]); // Free the pointer to the string
+    }
+    free(data);
+}
+
 int main(int argc, char *argv[]) {
-    // FILE *file = fopen("test.csv", "r");
+    FILE *file = fopen("test.csv", "r");
+
+    csv_data_t *data = csv_read_from_file(file);
+
+    for (uint32_t i = 0; i < data->num_rows; ++i)
+    for (uint32_t j = 0; j < data->num_columns; ++j)
+        printf("%s\n", data->data[i][j]);
+
+    csv_destroy(data);
+
+    // printf("%d %d\n", data->num_rows, data->num_columns);
+
+
+    // for (uint32_t i = 0; i < data->num_rows; ++i)
+    // for (uint32_t j = 0; j < data->num_columns; ++j) {
+    //     printf("%p: %s\n", data->data[i][j], data->data[i][j]);
+    // }
+
     // char buf[100];
 
     // while (fgets(buf, sizeof buf, file) != NULL) {
@@ -62,24 +154,24 @@ int main(int argc, char *argv[]) {
     //     }
     // }
 
-    linked_list_t *ll = ll_new();
-    linked_list_t *begin = ll;
+    // linked_list_t *ll = ll_new();
+    // linked_list_t *begin = ll;
 
-    int a = 1;
-    int b = 2;
-    int c = 3;
+    // int a = 1;
+    // int b = 2;
+    // int c = 3;
 
-    ll_push(&ll, &a);
-    ll_push(&ll, &b);
-    ll_push(&ll, &c);
+    // ll_push(&ll, &a);
+    // ll_push(&ll, &b);
+    // ll_push(&ll, &c);
 
-    ll = begin;
+    // ll = begin;
 
-    while (ll->next) {
-        printf("%d\n", *(int*)ll_get_and_next(&ll));
-    }
+    // while (ll->next) {
+    //     printf("%d\n", *(int*)ll_get_and_next(&ll));
+    // }
 
-    ll_destroy(ll);
+    // ll_destroy(ll);
 
     return 0;
 }

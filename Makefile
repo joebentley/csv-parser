@@ -1,8 +1,8 @@
-CFLAGS=-Wall -Werror
+CFLAGS=-Wall -Werror -g
 CC=gcc
 
 all:
-	$(CC) main.c -o main.out
+	$(CC) $(CFLAGS) main.c -o main.out
 
 clean:
 	rm main.out
