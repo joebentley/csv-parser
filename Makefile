@@ -1,8 +1,8 @@
-CFLAGS=-Wall -Werror -g
+CFLAGS=-Wall -g
 CC=gcc
 
 all:
-	$(CC) $(CFLAGS) main.c -o main.out
+	$(CC) $(CFLAGS) main.c linked_list.c -o main.out
 
 clean:
 	rm main.out
