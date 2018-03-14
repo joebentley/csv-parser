@@ -65,11 +65,11 @@ csv_data_t *csv_read_from_file(FILE *file) {
     while (fgets(buf, sizeof buf, file) != NULL) {
         linked_list_t *row = ll_new();
         linked_list_t *begin_row = row;
-        char *line = malloc(sizeof(char) * strlen(buf));
+        char *line = malloc(sizeof(char) * strlen(buf) + 1);
         char *token;
         char *separator = NULL;
 
-        memcpy(line, buf, strlen(buf));
+        memcpy(line, buf, strlen(buf) + 1);
 
         do {
             separator = strpbrk(line, ",\n");
